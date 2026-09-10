@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GDU Tracker</title>
+<meta name="theme-color" content="#1C3A1C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GDU Tracker">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --ink: #111111;
+    --forest: #1C3A1C;
+    --leaf: #4C7A3D;
+    --gold: #A8780F;
+    --red: #9B2C2C;
+    --line: rgba(28, 58, 28, 0.14);
+    --muted: rgba(17, 17, 17, 0.62);
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    margin: 0;
+    min-height: 100vh;
+    padding: max(32px, calc(env(safe-area-inset-top) + 20px)) 20px max(24px, calc(env(safe-area-inset-bottom) + 12px));
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 480px; width: 100%; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 26px; font-weight: 800; color: var(--forest); margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+  .offline { background: #FFF4D6; border: 1px solid #E8D08A; color: #5C4508; border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; }
+
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: rgba(28, 58, 28, 0.08); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+  .tab { border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 15px; padding: 10px 6px; border-radius: 9px; color: var(--forest); cursor: pointer; }
+  .tab[aria-selected="true"] { background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 18px; margin: 0 0 14px; color: var(--forest); }
+  .row { margin-bottom: 14px; }
+  .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--forest); margin: 0 0 6px; }
+  input[type="text"], input[type="number"], input[type="date"] {
+    display: block; width: 100%; font: inherit; font-size: 16px; padding: 11px 12px; min-height: 46px;
+    border: 1px solid rgba(17, 17, 17, 0.22); border-radius: 10px; background: #fff; color: var(--ink);
+  }
+  input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+  input:focus-visible, button:focus-visible { outline: 3px solid rgba(76, 122, 61, 0.45); outline-offset: 2px; }
+  .help { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; line-height: 1.4; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .seg button { font: inherit; font-size: 15px; font-weight: 600; padding: 11px; border-radius: 10px; border: 1px solid rgba(17, 17, 17, 0.22); background: #fff; color: var(--ink); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: var(--cream); }
+
+  .btn { display: block; width: 100%; font: inherit; font-size: 16px; font-weight: 700; padding: 13px 14px; min-height: 48px; border-radius: 11px; border: 1px solid var(--forest); background: var(--forest); color: var(--cream); cursor: pointer; }
+  .btn.ghost { background: #fff; color: var(--forest); }
+  .btn.danger { background: #fff; color: var(--red); border-color: rgba(155, 44, 44, 0.45); }
+  .btn.sm { display: inline-block; width: auto; font-size: 14px; padding: 8px 14px; min-height: 38px; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .err { color: var(--red); font-size: 14px; margin: 10px 0 0; line-height: 1.4; }
+  .ok { color: var(--leaf); font-size: 14px; font-weight: 600; margin: 12px 0 0; }
+
+  .loc { font-size: 14px; font-weight: 600; color: var(--forest); margin: 0 0 12px; }
+  .loc span { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .big { font-size: 52px; font-weight: 800; color: var(--forest); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .big-label { font-size: 14px; color: var(--ink); margin-top: 6px; line-height: 1.4; }
+  .compare { font-size: 13.5px; font-weight: 600; margin: 8px 0 14px; }
+  .compare.up { color: var(--leaf); }
+  .compare.down { color: var(--gold); }
+
+  .bar { height: 10px; background: rgba(28, 58, 28, 0.1); border-radius: 6px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--leaf); border-radius: 6px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-top: 5px; font-variant-numeric: tabular-nums; }
+
+  .proj { background: rgba(28, 58, 28, 0.06); border-radius: 12px; padding: 12px 14px; margin: 14px 0 6px; font-size: 14px; line-height: 1.4; }
+  .proj-date { font-size: 24px; font-weight: 800; color: var(--forest); }
+  .proj-src { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .proj.warn { background: #FFF4D6; color: #5C4508; }
+
+  .chart { margin-top: 10px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .legend i { display: inline-block; width: 18px; height: 0; border-top-width: 3px; vertical-align: middle; margin-right: 5px; }
+
+  .list-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; gap: 8px; }
+  .list-head p { margin: 0; font-size: 14px; color: var(--muted); }
+  .list-head div { display: flex; gap: 8px; }
+  .empty { text-align: center; color: var(--muted); font-size: 14.5px; line-height: 1.5; padding: 26px 18px; }
+
+  .fcard { padding: 0; overflow: hidden; }
+  .fhead { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 14px 16px; cursor: pointer; }
+  .fname { font-size: 17px; font-weight: 700; color: var(--forest); }
+  .fmeta { grid-column: 1; font-size: 13px; color: var(--muted); }
+  .fgdu { grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; font-size: 24px; font-weight: 800; color: var(--forest); font-variant-numeric: tabular-nums; line-height: 1; }
+  .fgdu small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 3px; }
+  .fsum { padding: 0 16px 14px; }
+  .fsum .next { font-size: 13px; margin-top: 6px; color: var(--ink); }
+  .fbody { border-top: 1px solid var(--line); padding: 14px 16px 16px; }
+  .fstatus { font-size: 12.5px; color: var(--muted); padding: 0 16px 12px; }
+  .fstatus.bad { color: var(--red); }
+  .pin { font-size: 14px; margin: 0 0 10px; line-height: 1.45; }
+  .pin span { color: var(--muted); font-size: 12.5px; }
+  .note-max { font-size: 13px; color: var(--muted); text-align: center; margin: 4px 0 14px; }
+
+  .footer-note { text-align: center; font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .footer-note p { margin: 0 0 8px; }
+  .footer-note .brand { color: var(--forest); font-weight: 700; font-size: 13px; }
+  .footer-note .logo-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+  .footer-note .logo-row img { width: 40px; height: 40px; object-fit: contain; }
+  .footer-note .website { color: var(--forest); font-size: 12px; text-decoration: none; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bar span { transition: width 0.4s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>GDU Tracker</h1>
+    <p>Growing degree units for corn and soybeans</p>
+  </header>
+
+  <div id="app"></div>
+
+  <footer class="footer-note">
+    <p>Weather data provided by Open-Meteo</p>
+    <p>GDUs use the modified method (50&deg;F base, 86&deg;F cap), counted from the plant date. Projections use the 16-day forecast, then the 10-year average for each day.</p>
+    <p><strong>This is a reference only. Always confirm crop stage in the field.</strong></p>
+    <p>Maplewood Ag is not responsible for this data or the decisions made by anyone accessing this data</p>
+    <div class="logo-row">
+      <img src="assets/maplewood-logo.png" alt="Maplewood Ag logo" onerror="this.style.display='none'">
+      <div>
+        <p class="brand" style="margin:0">Developed and brought to you by Maplewood Ag</p>
+        <a class="website" href="https://www.maplewoodag.com" target="_blank" rel="noopener">www.maplewoodag.com</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Settings ----------
+  const BASE = 50, CAP = 86, MAX_FIELDS = 10, CORN_DEFAULT = '2700';
+  const LS = { fields: 'gdu.fields.v1', here: 'gdu.here.v1', results: 'gdu.results.v1', normals: 'gdu.normals.v1', tab: 'gdu.tab.v1' };
+
+  const load = (k, fallback) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  // ---------- State ----------
+  let fields = load(LS.fields, []);
+  let results = load(LS.results, {});
+  let here = Object.assign({ plantDate: '', crop: 'corn', target: CORN_DEFAULT }, load(LS.here, {}));
+  let tab = load(LS.tab, 'here');
+  let hereBusy = '', hereError = '', hereResult = null, hereSave = null, hereSaved = false;
+  let openId = null, editing = null, formBusy = '', formError = '';
+  const fieldState = {};
+
+  // ---------- Helpers ----------
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const dayDiff = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
+  const fmtD = s => {
+    const withYear = s.slice(0, 4) !== String(new Date().getFullYear());
+    return new Date(s + 'T00:00:00Z').toLocaleDateString('en-US', Object.assign({ month: 'short', day: 'numeric', timeZone: 'UTC' }, withYear ? { year: 'numeric' } : {}));
+  };
+  const num = n => Math.round(n).toLocaleString('en-US');
+  const cropName = c => (c === 'soy' ? 'Soybeans' : 'Corn');
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const parseTarget = v => { const n = parseInt(String(v).replace(/,/g, ''), 10); return n > 0 ? n : null; };
+  const targetInvalid = v => String(v).trim() !== '' && !(parseTarget(v) && parseTarget(v) <= 6000);
+
+  function gdu(hi, lo) {
+    if (hi == null || lo == null || isNaN(hi) || isNaN(lo)) return null;
+    const clamp = v => Math.min(Math.max(v, BASE), CAP);
+    return (clamp(hi) + clamp(lo)) / 2 - BASE;
+  }
+
+  // ---------- Weather ----------
+  const DAILY = 'daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto';
+  const fcUrl = (la, lo) => `https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&${DAILY}&past_days=92&forecast_days=16`;
+  const arUrl = (la, lo, s, e) => `https://archive-api.open-meteo.com/v1/archive?latitude=${la}&longitude=${lo}&start_date=${s}&end_date=${e}&${DAILY}`;
+
+  async function getJSON(url) {
+    let r;
+    try { r = await fetch(url); }
+    catch (e) { throw new Error('Could not reach the weather service. Check your connection and try again.'); }
+    if (!r.ok) {
+      let reason = '';
+      try { reason = (await r.json()).reason || ''; } catch (e) {}
+      throw new Error('Weather service error' + (reason ? ': ' + reason : ' (' + r.status + ')'));
+    }
+    return r.json();
+  }
+
+  // 10-year average GDUs for each calendar day, cached per location
+  async function getNormals(lat, lon, locToday) {
+    const key = lat.toFixed(2) + ',' + lon.toFixed(2);
+    const year = +locToday.slice(0, 4);
+    const all = load(LS.normals, {});
+    if (all[key] && all[key].year === year) return all[key].avg;
+    const a = await getJSON(arUrl(lat, lon, `${year - 10}-01-01`, `${year - 1}-12-31`));
+    const sum = {}, cnt = {};
+    a.daily.time.forEach((t, i) => {
+      const g = gdu(a.daily.temperature_2m_max[i], a.daily.temperature_2m_min[i]);
+      if (g == null) return;
+      const k = t.slice(5);
+      sum[k] = (sum[k] || 0) + g;
+      cnt[k] = (cnt[k] || 0) + 1;
+    });
+    const avg = {};
+    Object.keys(sum).forEach(k => { avg[k] = Math.round((sum[k] / cnt[k]) * 10) / 10; });
+    all[key] = { avg, year, saved: Date.now() };
+    const keys = Object.keys(all).sort((x, y) => all[y].saved - all[x].saved);
+    keys.slice(12).forEach(k => delete all[k]);
+    save(LS.normals, all);
+    return avg;
+  }
+  const normAt = (avg, d) => { const k = d.slice(5); return avg[k] != null ? avg[k] : (avg['02-28'] || 0); };
+
+  async function computeGDU(lat, lon, plantDate, target) {
+    const fc = await getJSON(fcUrl(lat, lon));
+    const times = fc.daily.time;
+    const locToday = times[times.length - 16];
+    const forecastEnd = times[times.length - 1];
+
+    if (dayDiff(plantDate, locToday) > 400) throw new Error('Plant date needs to be within the last year.');
+    if (dayDiff(locToday, plantDate) > 366) throw new Error('Plant date is more than a year away.');
+
+    const days = {};
+    times.forEach((t, i) => {
+      days[t] = { g: gdu(fc.daily.temperature_2m_max[i], fc.daily.temperature_2m_min[i]), s: t < locToday ? 'obs' : 'fcst' };
+    });
+
+    const jobs = [getNormals(lat, lon, locToday)];
+    if (plantDate < times[0]) {
+      jobs.push(getJSON(arUrl(lat, lon, plantDate, addDays(times[0], -1))).then(a => {
+        a.daily.time.forEach((t, i) => {
+          days[t] = { g: gdu(a.daily.temperature_2m_max[i], a.daily.temperature_2m_min[i]), s: 'obs' };
+        });
+      }));
+    }
+    const [normals] = await Promise.all(jobs);
+
+    const asOf = addDays(locToday, -1);
+    const tgt = target || null;
+    let cum = 0, normalToDate = 0, missing = 0, reachedDate = null;
+    const points = [];
+
+    for (let d = plantDate; d <= asOf; d = addDays(d, 1)) {
+      const n = normAt(normals, d);
+      let g = days[d] && days[d].g != null ? days[d].g : null;
+      if (g == null) { missing++; g = n; }
+      cum += g;
+      normalToDate += n;
+      points.push({ d, c: cum, s: 'obs' });
+      if (tgt && !reachedDate && cum >= tgt) reachedDate = d;
+    }
+    const toDate = cum;
+
+    let projectedDate = null, projectedVia = null, stopDate = null;
+    if (!reachedDate) {
+      let d = plantDate > locToday ? plantDate : locToday;
+      stopDate = d.slice(0, 4) + '-12-31';
+      let c = cum;
+      while (d <= stopDate) {
+        const day = days[d];
+        const useFc = day && day.s === 'fcst' && day.g != null;
+        if (!tgt && !useFc) break; // no target: show forecast only
+        const g = useFc ? day.g : normAt(normals, d);
+        c += g;
+        points.push({ d, c, s: useFc ? 'fcst' : 'norm' });
+        if (tgt && c >= tgt) { projectedDate = d; projectedVia = useFc ? 'fcst' : 'norm'; break; }
+        d = addDays(d, 1);
+      }
+    }
+
+    return { plantDate, target: tgt, locToday, asOf, forecastEnd, toDate, normalToDate, missing, reachedDate, projectedDate, projectedVia, stopDate, points, computedAt: Date.now() };
+  }
+
+  // ---------- Location ----------
+  function locate() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) return reject(new Error("This device doesn't support location."));
+      navigator.geolocation.getCurrentPosition(
+        p => resolve({ lat: +p.coords.latitude.toFixed(5), lon: +p.coords.longitude.toFixed(5), acc: Math.round(p.coords.accuracy) }),
+        e => reject(new Error(
+          e.code === 1 ? 'Location access is blocked. Allow location for this app in your browser or phone settings, then try again.'
+          : e.code === 3 ? 'Getting your location took too long. Wait for a GPS signal, then try again.'
+          : 'Your location is unavailable right now. Try again in a moment.')),
+        { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+      );
+    });
+  }
+
+  async function placeName(lat, lon) {
+    try {
+      const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+      if (!r.ok) return '';
+      const j = await r.json();
+      const town = j.city || j.locality || '';
+      const st = (j.principalSubdivisionCode || '').replace(/^US-/, '') || j.principalSubdivision || '';
+      return [town, st].filter(Boolean).join(', ');
+    } catch (e) { return ''; }
+  }
+  const locLine = o => `<p class="loc">${o.place ? 'Near ' + esc(o.place) : 'Pinned location'}<span>${o.lat.toFixed(4)}, ${o.lon.toFixed(4)}${o.acc ? ' (&plusmn;' + num(o.acc) + ' m)' : ''}</span></p>`;
+
+  // ---------- Chart ----------
+  function chartSVG(calc) {
+    const pts = calc.points;
+    if (pts.length < 2) return '';
+    const W = 340, H = 196, pl = 40, pr = 12, pt = 14, pb = 26;
+    const x0 = Date.parse(pts[0].d), x1 = Date.parse(pts[pts.length - 1].d);
+    const top = Math.max(calc.target || 0, pts[pts.length - 1].c, 50) * 1.08;
+    const step = top > 2400 ? 500 : top > 1000 ? 250 : top > 400 ? 100 : 50;
+    const X = d => pl + ((Date.parse(d) - x0) / ((x1 - x0) || 1)) * (W - pl - pr);
+    const Y = v => pt + (1 - v / top) * (H - pt - pb);
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Accumulated GDUs over the season">`;
+
+    for (let v = 0; v <= top; v += step) {
+      s += `<line x1="${pl}" x2="${W - pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="rgba(28,58,28,0.1)"/>`;
+      s += `<text x="${pl - 6}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="rgba(17,17,17,0.55)">${num(v)}</text>`;
+    }
+
+    let m = pts[0].d.slice(0, 7) + '-01';
+    const nextMonth = iso => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() + 1); return d.toISOString().slice(0, 10); };
+    if (m < pts[0].d) m = nextMonth(m);
+    let ticks = 0;
+    const lastD = pts[pts.length - 1].d;
+    while (m <= lastD) {
+      const x = X(m);
+      if (x < W - pr - 8) {
+        s += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${H - pb}" y2="${H - pb + 4}" stroke="rgba(17,17,17,0.35)"/>`;
+        s += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="rgba(17,17,17,0.55)">${new Date(m + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })}</text>`;
+        ticks++;
+      }
+      m = nextMonth(m);
+    }
+    if (!ticks) {
+      s += `<text x="${pl}" y="${H - 8}" font-size="10" fill="rgba(17,17,17,0.55)">${fmtD(pts[0].d)}</text>`;
+      s += `<text x="${W - pr}" y="${H - 8}" text-anchor="end" font-size="10" fill="rgba(17,17,17,0.55)">${fmtD(lastD)}</text>`;
+    }
+
+    if (calc.target) {
+      const y = Y(calc.target).toFixed(1);
+      s += `<line x1="${pl}" x2="${W - pr}" y1="${y}" y2="${y}" stroke="#A8780F" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+      s += `<text x="${pl + 4}" y="${(Y(calc.target) - 5).toFixed(1)}" font-size="10.5" font-weight="600" fill="#A8780F">Target ${num(calc.target)}</text>`;
+    }
+
+    if (calc.locToday > pts[0].d && calc.locToday < lastD) {
+      const x = X(calc.locToday).toFixed(1);
+      s += `<line x1="${x}" x2="${x}" y1="${pt}" y2="${H - pb}" stroke="rgba(17,17,17,0.3)" stroke-dasharray="2 3"/>`;
+      s += `<text x="${x}" y="${pt - 3}" text-anchor="middle" font-size="10" fill="rgba(17,17,17,0.6)">Today</text>`;
+    }
+
+    const style = { obs: 'stroke="#1C3A1C" stroke-width="2.6"', fcst: 'stroke="#4C7A3D" stroke-width="2.6" stroke-dasharray="6 4"', norm: 'stroke="rgba(28,58,28,0.5)" stroke-width="2.2" stroke-dasharray="2 4"' };
+    const segs = [];
+    let cur = null;
+    pts.forEach((p, i) => {
+      if (!cur || cur.s !== p.s) { cur = { s: p.s, pts: i > 0 ? [pts[i - 1]] : [] }; segs.push(cur); }
+      cur.pts.push(p);
+    });
+    segs.forEach(g => {
+      if (g.pts.length < 2) return;
+      const d = g.pts.map((p, i) => (i ? 'L' : 'M') + X(p.d).toFixed(1) + ' ' + Y(p.c).toFixed(1)).join(' ');
+      s += `<path d="${d}" fill="none" ${style[g.s]} stroke-linecap="round" stroke-linejoin="round"/>`;
+    });
+    s += '</svg>';
+
+    const has = k => pts.some(p => p.s === k);
+    let legend = '<div class="legend">';
+    if (has('obs')) legend += '<span><i style="border-top:3px solid #1C3A1C"></i>Actual</span>';
+    if (has('fcst')) legend += '<span><i style="border-top:3px dashed #4C7A3D"></i>Forecast</span>';
+    if (has('norm')) legend += '<span><i style="border-top:3px dotted rgba(28,58,28,0.55)"></i>10-year average</span>';
+    legend += '</div>';
+    return `<div class="chart">${s}${legend}</div>`;
+  }
+
+  // ---------- Result block ----------
+  function resultHTML(calc) {
+    const t = calc.target;
+    let h = '';
+    if (calc.plantDate > calc.asOf) {
+      h += `<div class="big">0</div><div class="big-label">${calc.plantDate === calc.locToday ? 'Planted today.' : 'Plant date is ' + fmtD(calc.plantDate) + '.'} GDUs start counting on the plant date.</div>`;
+    } else {
+      h += `<div class="big">${num(calc.toDate)}</div><div class="big-label">GDUs since planting on ${fmtD(calc.plantDate)}, through ${fmtD(calc.asOf)}</div>`;
+      const diff = Math.round(calc.toDate - calc.normalToDate);
+      h += `<p class="compare ${diff >= 0 ? 'up' : 'down'}">${diff === 0 ? 'Even with' : diff > 0 ? num(diff) + ' ahead of' : num(-diff) + ' behind'} the 10-year average for these dates</p>`;
+    }
+
+    if (t) {
+      const pct = Math.min(100, (calc.toDate / t) * 100);
+      h += `<div class="bar" role="img" aria-label="${Math.round(pct)} percent of target"><span style="width:${pct.toFixed(1)}%"></span></div>`;
+      h += `<div class="bar-label"><span>${num(calc.toDate)} of ${num(t)}</span><span>${calc.toDate >= t ? 'Target reached' : num(t - calc.toDate) + ' to go'}</span></div>`;
+      if (calc.reachedDate) {
+        h += `<div class="proj"><div class="proj-date">${fmtD(calc.reachedDate)}</div><div>Date ${num(t)} GDUs was reached</div></div>`;
+      } else if (calc.projectedDate) {
+        const days = dayDiff(calc.locToday, calc.projectedDate);
+        h += `<div class="proj"><div class="proj-date">${fmtD(calc.projectedDate)}</div><div>Projected date to reach ${num(t)} GDUs${days > 0 ? ', about ' + days + ' day' + (days === 1 ? '' : 's') + ' from now' : ''}</div>`;
+        h += `<div class="proj-src">${calc.projectedVia === 'fcst' ? 'Based on the 16-day forecast' : 'Uses the forecast through ' + fmtD(calc.forecastEnd) + ', then the 10-year average'}</div></div>`;
+      } else {
+        h += `<div class="proj warn">At the 10-year average pace, ${num(t)} GDUs won't be reached by ${fmtD(calc.stopDate)}.</div>`;
+      }
+    } else {
+      h += '<p class="help">Enter a target GDU number to see a projected date.</p>';
+    }
+
+    h += chartSVG(calc);
+    if (calc.missing) h += `<p class="help">${calc.missing} day${calc.missing === 1 ? '' : 's'} of missing weather data filled with the 10-year average.</p>`;
+    return h;
+  }
+
+  // ---------- Views ----------
+  const helpText = crop => crop === 'soy'
+    ? 'Soybean GDU ratings vary by variety and maturity group. Enter the target from your seed source.'
+    : "GDUs to black layer from the hybrid's rating.";
+
+  const cropToggle = (scope, crop) => `<div class="seg" role="group" aria-label="Crop">
+      <button type="button" data-action="crop" data-scope="${scope}" data-crop="corn" aria-pressed="${crop === 'corn'}">Corn</button>
+      <button type="button" data-action="crop" data-scope="${scope}" data-crop="soy" aria-pressed="${crop === 'soy'}">Soybeans</button>
+    </div>`;
+
+  function hereView() {
+    let h = `<section class="card">
+      <div class="row"><label class="lbl" for="h-plant">Plant date</label>
+        <input id="h-plant" type="date" data-bind="here.plantDate" value="${esc(here.plantDate)}"></div>
+      <div class="row"><span class="lbl">Crop</span>${cropToggle('here', here.crop)}</div>
+      <div class="row"><label class="lbl" for="h-target">Target GDUs</label>
+        <input id="h-target" type="number" inputmode="numeric" min="1" step="10" data-bind="here.target" value="${esc(here.target)}" placeholder="${here.crop === 'soy' ? 'From variety rating' : '2700'}">
+        <p class="help">${helpText(here.crop)}</p></div>
+      <button class="btn" data-action="here-go" ${hereBusy ? 'disabled' : ''}>${hereBusy ? esc(hereBusy) : 'Get GDUs for my location'}</button>
+      ${hereError ? `<p class="err">${esc(hereError)}</p>` : ''}
+    </section>`;
+
+    if (hereResult) {
+      h += `<section class="card">${locLine(hereResult)}<p class="help" style="margin:-6px 0 12px">${cropName(hereResult.crop)}</p>${resultHTML(hereResult.calc)}`;
+      if (hereSaved) {
+        h += '<p class="ok">Saved to My fields.</p>';
+      } else if (hereSave) {
+        h += `<div class="row" style="margin-top:16px"><label class="lbl" for="hs-name">Field name</label>
+          <input id="hs-name" type="text" data-bind="hereSave.name" value="${esc(hereSave.name)}" placeholder="e.g. Home 80" autocomplete="off"></div>
+          ${hereSave.error ? `<p class="err">${esc(hereSave.error)}</p>` : ''}
+          <div class="btn-row"><button class="btn" data-action="here-save">Save field</button><button class="btn ghost" data-action="here-save-cancel">Cancel</button></div>`;
+      } else if (fields.length < MAX_FIELDS) {
+        h += '<button class="btn ghost" style="margin-top:16px" data-action="here-save-open">Save as a field</button>';
+      } else {
+        h += `<p class="help" style="margin-top:14px">You have ${MAX_FIELDS} fields saved. Delete one to save this location.</p>`;
+      }
+      h += '</section>';
+    }
+    return h;
+  }
+
+  function formView() {
+    const d = editing.draft;
+    return `<section class="card" id="field-form">
+      <h2>${editing.mode === 'add' ? 'Add a field' : 'Edit field'}</h2>
+      <div class="row"><label class="lbl" for="f-name">Field name</label>
+        <input id="f-name" type="text" data-bind="draft.name" value="${esc(d.name)}" placeholder="e.g. Home 80" autocomplete="off"></div>
+      <div class="row"><span class="lbl">Crop</span>${cropToggle('draft', d.crop)}</div>
+      <div class="row"><label class="lbl" for="f-plant">Plant date</label>
+        <input id="f-plant" type="date" data-bind="draft.plantDate" value="${esc(d.plantDate)}"></div>
+      <div class="row"><label class="lbl" for="f-target">Target GDUs</label>
+        <input id="f-target" type="number" inputmode="numeric" min="1" step="10" data-bind="draft.target" value="${esc(d.target)}" placeholder="${d.crop === 'soy' ? 'From variety rating' : '2700'}">
+        <p class="help">${helpText(d.crop)}</p></div>
+      <div class="row"><span class="lbl">Location</span>
+        ${d.lat != null
+          ? `<p class="pin">${d.place ? 'Pinned near ' + esc(d.place) : 'Pinned'}<br><span>${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}${d.acc ? ' (&plusmn;' + num(d.acc) + ' m)' : ''}</span></p>`
+          : '<p class="help" style="margin:0 0 10px">Stand in the field, then pin your location.</p>'}
+        <button class="btn ghost" data-action="pin" ${formBusy ? 'disabled' : ''}>${formBusy ? esc(formBusy) : d.lat != null ? "Re-pin to where I'm standing" : 'Pin my location'}</button>
+      </div>
+      ${formError ? `<p class="err">${esc(formError)}</p>` : ''}
+      <div class="btn-row"><button class="btn" data-action="save" ${formBusy ? 'disabled' : ''}>Save field</button><button class="btn ghost" data-action="cancel">Cancel</button></div>
+    </section>`;
+  }
+
+  function fieldCard(f) {
+    const calc = results[f.id];
+    const st = fieldState[f.id] || {};
+    const open = openId === f.id;
+    let h = `<article class="card fcard">
+      <button class="fhead" data-action="toggle" data-id="${f.id}" aria-expanded="${open}">
+        <span class="fname">${esc(f.name)}</span>
+        ${open ? '' : `<span class="fgdu">${calc ? num(calc.toDate) : '&ndash;'}<small>GDUs</small></span>`}
+        <span class="fmeta">${cropName(f.crop)}, planted ${fmtD(f.plantDate)}</span>
+      </button>`;
+
+    if (calc && !open && f.target) {
+      const pct = Math.min(100, (calc.toDate / f.target) * 100);
+      const next = calc.reachedDate ? `Reached ${num(f.target)} on ${fmtD(calc.reachedDate)}`
+        : calc.projectedDate ? `Projected to reach ${num(f.target)} on <strong>${fmtD(calc.projectedDate)}</strong>`
+        : `Not projected to reach ${num(f.target)} this year`;
+      h += `<div class="fsum"><div class="bar"><span style="width:${pct.toFixed(1)}%"></span></div><div class="next">${next}</div></div>`;
+    }
+
+    if (st.loading) h += '<div class="fstatus">Updating&hellip;</div>';
+    else if (st.error) h += `<div class="fstatus bad">${esc(st.error)}</div>`;
+
+    if (open) {
+      h += `<div class="fbody">${locLine(f)}`;
+      h += calc ? resultHTML(calc) : '<p class="help">No data yet. Tap Refresh to pull weather.</p>';
+      if (calc) h += `<p class="help">Updated ${new Date(calc.computedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>`;
+      h += `<div class="btn-row"><button class="btn ghost" data-action="edit" data-id="${f.id}">Edit</button><button class="btn danger" data-action="delete" data-id="${f.id}">Delete</button></div></div>`;
+    }
+    return h + '</article>';
+  }
+
+  function fieldsView() {
+    let h = `<div class="list-head"><p>${fields.length} of ${MAX_FIELDS} fields</p><div>
+      ${fields.length ? '<button class="btn sm ghost" data-action="refresh-all">Refresh</button>' : ''}
+      <button class="btn sm" data-action="add" ${fields.length >= MAX_FIELDS || editing ? 'disabled' : ''}>Add field</button></div></div>`;
+    if (editing) h += formView();
+    if (!fields.length && !editing) h += '<div class="card empty">No fields saved yet.<br>Stand in a field, tap Add field, and pin its location.</div>';
+    h += fields.map(fieldCard).join('');
+    if (fields.length >= MAX_FIELDS) h += `<p class="note-max">${MAX_FIELDS} of ${MAX_FIELDS} fields saved. Delete one to add another.</p>`;
+    return h;
+  }
+
+  // ---------- Render ----------
+  const app = document.getElementById('app');
+  function render() {
+    const active = document.activeElement;
+    const activeId = active && app.contains(active) ? active.id : null;
+    let sel = null;
+    try { if (activeId && active.type === 'text') sel = [active.selectionStart, active.selectionEnd]; } catch (e) {}
+
+    let h = navigator.onLine ? '' : '<div class="offline">You\'re offline. Saved fields show their last numbers.</div>';
+    h += `<div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="${tab === 'here'}" data-action="tab" data-tab="here">Current location</button>
+      <button class="tab" role="tab" aria-selected="${tab === 'fields'}" data-action="tab" data-tab="fields">My fields (${fields.length})</button>
+    </div>`;
+    h += tab === 'here' ? hereView() : fieldsView();
+    app.innerHTML = h;
+
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch (e) {} }
+    }
+  }
+
+  // ---------- Actions ----------
+  async function refreshField(f) {
+    fieldState[f.id] = { loading: true };
+    render();
+    try {
+      results[f.id] = await computeGDU(f.lat, f.lon, f.plantDate, f.target);
+      save(LS.results, results);
+      fieldState[f.id] = {};
+    } catch (e) {
+      fieldState[f.id] = { error: e.message };
+    }
+    render();
+  }
+  const refreshAll = () => Promise.all(fields.map(refreshField));
+
+  function setCrop(obj, crop) {
+    if (obj.crop === crop) return;
+    if (crop === 'soy' && String(obj.target) === CORN_DEFAULT) obj.target = '';
+    if (crop === 'corn' && !String(obj.target).trim()) obj.target = CORN_DEFAULT;
+    obj.crop = crop;
+  }
+
+  app.addEventListener('input', e => {
+    const b = e.target.dataset.bind;
+    if (!b) return;
+    const [scope, key] = b.split('.');
+    const obj = scope === 'here' ? here : scope === 'draft' ? (editing && editing.draft) : hereSave;
+    if (!obj) return;
+    obj[key] = e.target.value;
+    if (scope === 'here') { save(LS.here, here); hereError = ''; }
+  });
+
+  app.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn || btn.disabled) return;
+    const a = btn.dataset.action, id = btn.dataset.id;
+
+    if (a === 'tab') { tab = btn.dataset.tab; save(LS.tab, tab); render(); window.scrollTo(0, 0); return; }
+
+    if (a === 'crop') {
+      const obj = btn.dataset.scope === 'here' ? here : editing.draft;
+      setCrop(obj, btn.dataset.crop);
+      if (btn.dataset.scope === 'here') save(LS.here, here);
+      render();
+      return;
+    }
+
+    if (a === 'here-go') {
+      hereError = '';
+      if (!here.plantDate) { hereError = 'Enter a plant date first.'; render(); return; }
+      if (targetInvalid(here.target)) { hereError = 'Target GDUs should be a number between 1 and 6,000.'; render(); return; }
+      try {
+        hereBusy = 'Finding your location\u2026'; render();
+        const pos = await locate();
+        hereBusy = 'Pulling weather data\u2026'; render();
+        const target = parseTarget(here.target);
+        const [calc, place] = await Promise.all([computeGDU(pos.lat, pos.lon, here.plantDate, target), placeName(pos.lat, pos.lon)]);
+        hereResult = Object.assign({}, pos, { place, calc, crop: here.crop, target });
+        hereSave = null; hereSaved = false;
+      } catch (err) {
+        hereError = err.message;
+      }
+      hereBusy = '';
+      render();
+      return;
+    }
+
+    if (a === 'here-save-open') { hereSave = { name: '' }; render(); const el = document.getElementById('hs-name'); if (el) el.focus(); return; }
+    if (a === 'here-save-cancel') { hereSave = null; render(); return; }
+    if (a === 'here-save') {
+      const name = (hereSave.name || '').trim();
+      if (!name) { hereSave.error = 'Enter a field name.'; render(); return; }
+      if (fields.length >= MAX_FIELDS) { hereSave.error = `You already have ${MAX_FIELDS} fields saved.`; render(); return; }
+      const r = hereResult;
+      const f = { id: newId(), name, crop: r.crop, plantDate: r.calc.plantDate, target: r.target, lat: r.lat, lon: r.lon, acc: r.acc, place: r.place };
+      fields.push(f); save(LS.fields, fields);
+      results[f.id] = r.calc; save(LS.results, results);
+      hereSave = null; hereSaved = true;
+      render();
+      return;
+    }
+
+    if (a === 'add') {
+      editing = { mode: 'add', draft: { name: '', crop: here.crop || 'corn', plantDate: here.plantDate || '', target: here.crop === 'soy' ? '' : CORN_DEFAULT, lat: null, lon: null, acc: null, place: '' } };
+      formError = ''; openId = null;
+      render();
+      const el = document.getElementById('field-form'); if (el) el.scrollIntoView({ block: 'start' });
+      return;
+    }
+    if (a === 'edit') {
+      const f = fields.find(x => x.id === id);
+      editing = { mode: 'edit', id, draft: Object.assign({}, f, { target: f.target ? String(f.target) : '' }) };
+      formError = ''; openId = null;
+      render();
+      const el = document.getElementById('field-form'); if (el) el.scrollIntoView({ block: 'start' });
+      return;
+    }
+    if (a === 'cancel') { editing = null; formError = ''; formBusy = ''; render(); return; }
+
+    if (a === 'pin') {
+      formError = '';
+      try {
+        formBusy = 'Finding your location\u2026'; render();
+        const pos = await locate();
+        formBusy = 'Looking up the area\u2026'; render();
+        const place = await placeName(pos.lat, pos.lon);
+        if (editing) Object.assign(editing.draft, pos, { place });
+      } catch (err) {
+        formError = err.message;
+      }
+      formBusy = '';
+      render();
+      return;
+    }
+
+    if (a === 'save') {
+      const d = editing.draft;
+      formError = !d.name.trim() ? 'Enter a field name.'
+        : !d.plantDate ? 'Enter a plant date.'
+        : targetInvalid(d.target) ? 'Target GDUs should be a number between 1 and 6,000.'
+        : d.lat == null ? 'Pin the field location before saving.' : '';
+      if (formError) { render(); return; }
+      const f = { id: editing.mode === 'add' ? newId() : editing.id, name: d.name.trim(), crop: d.crop, plantDate: d.plantDate, target: parseTarget(d.target), lat: d.lat, lon: d.lon, acc: d.acc, place: d.place };
+      if (editing.mode === 'add') {
+        if (fields.length >= MAX_FIELDS) { formError = `You already have ${MAX_FIELDS} fields saved.`; render(); return; }
+        fields.push(f);
+      } else {
+        fields = fields.map(x => (x.id === f.id ? f : x));
+        delete results[f.id];
+      }
+      save(LS.fields, fields); save(LS.results, results);
+      editing = null; openId = f.id;
+      refreshField(f);
+      return;
+    }
+
+    if (a === 'toggle') { openId = openId === id ? null : id; render(); return; }
+
+    if (a === 'delete') {
+      const f = fields.find(x => x.id === id);
+      if (!f || !confirm(`Delete ${f.name}? This can't be undone.`)) return;
+      fields = fields.filter(x => x.id !== id);
+      delete results[id]; delete fieldState[id];
+      save(LS.fields, fields); save(LS.results, results);
+      openId = null;
+      render();
+      return;
+    }
+
+    if (a === 'refresh-all') { refreshAll(); return; }
+  });
+
+  window.addEventListener('online', () => { render(); refreshAll(); });
+  window.addEventListener('offline', render);
+
+  render();
+  if (navigator.onLine && fields.length) refreshAll();
+
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
